@@ -1,0 +1,13 @@
+---
+title: Home
+---
+
+
+# Mildly significant
+
+
+[<img src="https://payload.cargocollective.com/1/21/688925/11464573/attractor-0-a3-b-0.3-c1.35-d-1.11-s2_800.png" style="max-width:32%;min-width:80px; float:right;" alt="Github repo" />](https://www.nicholasmoriarty.com/Simple-Attractor)
+
+
+
+All posts:

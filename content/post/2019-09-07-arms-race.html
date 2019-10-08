@@ -1,0 +1,277 @@
+---
+title: "Modeling Arms Race with ODE system"
+output:
+  blogdown::html_page:
+    toc: true
+date: 2019-09-07
+categories: ["R"]
+tags: ["ODE", "plot"]
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#model-formulation">Model formulation</a></li>
+<li><a href="#possible-scenarios">Possible scenarios</a></li>
+</ul></li>
+<li><a href="#example-warsaw-pact-and-nato">Example: Warsaw Pact and NATO</a><ul>
+<li><a href="#model-fitting">Model fitting</a><ul>
+<li><a href="#rms-optimization">RMS Optimization</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#summary">Summary</a></li>
+</ul>
+</div>
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<!-- 
+- motivation
+- model background
+-->
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ut tempus turpis. Suspendisse ultricies enim et imperdiet suscipit. Sed eget enim ipsum. Fusce efficitur iaculis ullamcorper. Ut purus purus, fringilla vel vehicula sed, fringilla finibus nibh. Sed aliquet ipsum sapien, quis vulputate neque venenatis vitae.
+Donec vitae elementum nisi. Nulla nec tristique velit. Integer efficitur tristique dolor, a suscipit eros bibendum at. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed nibh arcu, molestie vulputate elit eu, scelerisque venenatis orci. Fusce nunc mauris, vestibulum eu nulla id, vestibulum venenatis arcu. Cras eget scelerisque ipsum.</p>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<aside>
+<img src="images/Lewis_Fry_Richardson.png" style="display: block; margin: auto;" />
+</aside>
+<div id="model-formulation" class="section level2">
+<h2>Model formulation</h2>
+<p><span class="math display">\[ 
+x_{t+1} = x_t + change
+\]</span></p>
+<p><span class="math display">\[ 
+change = r_xy_t - d_xx_t + a_x
+\]</span></p>
+<p><span class="math inline">\(r_{x}\)</span> - <em>reaction</em> coefficent, indicating amount of arms increase due to current opponent resources.</p>
+<p><span class="math inline">\(d_{x}\)</span> - <em>disarment</em> coefficent, expressing tendency to reducing proportion of own armaments.</p>
+<p><span class="math inline">\(a_{x}\)</span> - <em>free</em> coefficent, responsible for constant attribution resulting from causes unrelated to own/opponent arms stock.</p>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<p><span class="math display">\[ 
+\frac{dx}{dt} = r_xy - d_xx + a_x \\
+\]</span></p>
+<p><span class="math display">\[
+\frac{dy}{dt} = r_yx - d_yy + a_y
+\]</span>
+Our final system:</p>
+<p><span class="math display">\[ 
+\begin{cases}
+\frac{dx}{dt} = r_xy - d_xx + a_x \\
+\frac{dy}{dt} = r_yx - d_yy + a_y
+\end{cases}
+\]</span></p>
+<pre class="r"><code>richardson_ode &lt;- function(t, y, params) {
+  dy &lt;- numeric(2)
+  dy[1] &lt;- params[1] * y[2] - params[2] * y[1] + params[3]
+  dy[2] &lt;- params[4] * y[1] - params[5] * y[2] + params[6]
+  return(list(dy))
+}</code></pre>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+</div>
+<div id="possible-scenarios" class="section level2">
+<h2>Possible scenarios</h2>
+<pre class="r"><code>richardson_ode_solver &lt;- function(init, t_seq, params,
+                                  labels = c(&quot;t&quot;, &quot;x&quot;, &quot;y&quot;)) {
+  ode_result &lt;- deSolve::ode(init, t_seq, richardson_ode, params) %&gt;%
+    as_tibble() %&gt;%
+    set_names(labels) %&gt;%
+    return()
+}</code></pre>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<pre class="r"><code>phasePlot &lt;- function(ode, parameters, lims) {
+  par(mar = c(3, 3, 1, 1))
+  flow &lt;- phaseR::flowField(ode,
+    xlim = c(0, lims), ylim = c(0, lims),
+    parameters = parameters, points = 10, add = FALSE
+  )
+  nullclines &lt;- phaseR::nullclines(ode,
+    xlim = c(0, lims), ylim = c(0, lims),
+    parameters = parameters,
+    col = c(&quot;blue&quot;, &quot;red&quot;), points = 50
+  )
+}</code></pre>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<pre class="r"><code>phasePlot(richardson_ode, c(2, 2, 1, 1, -2, -2), 1.5)</code></pre>
+<p><img src="/post/2019-09-07-arms-race_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<pre class="r"><code>phasePlot(richardson_ode, c(2, 5, 2, 5, 5, 5), 5)</code></pre>
+<p><img src="/post/2019-09-07-arms-race_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+</div>
+</div>
+<div id="example-warsaw-pact-and-nato" class="section level1">
+<h1>Example: Warsaw Pact and NATO</h1>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ──────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
+## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
+## ✔ tidyr   0.8.3     ✔ stringr 1.4.0
+## ✔ readr   1.3.1     ✔ forcats 0.4.0</code></pre>
+<pre><code>## ── Conflicts ─────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>nato_expenses &lt;- c(
+  206.1, 209.6, 205.6, 208.6, 206.1,
+  202.8, 209.9, 212.7, 218.8, 229.8
+)
+warsaw_pact_expenses &lt;- c(
+  166.6, 173.9, 180.9, 188.5, 195.3,
+  203.8, 206.9, 210.1, 212.6, 218.9
+)
+example1_df &lt;- tibble(
+  year = 1971:1980,
+  nato = nato_expenses,
+  warsaw_pact = warsaw_pact_expenses
+)</code></pre>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/post/2019-09-07-arms-race_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed nibh arcu, molestie vulputate elit eu, scelerisque venenatis orci. Fusce nunc mauris, vestibulum eu nulla id, vestibulum venenatis arcu. Cras eget scelerisque ipsum.</p>
+<pre><code>## Warning in cor.test.default(example1_df$nato, example1_df$warsaw_pact,
+## method = .x): Cannot compute exact p-value with ties
+
+## Warning in cor.test.default(example1_df$nato, example1_df$warsaw_pact,
+## method = .x): Cannot compute exact p-value with ties</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">method</th>
+<th align="right">estimate</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+<th align="right">conf.low</th>
+<th align="right">conf.high</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><strong>pearson</strong></td>
+<td align="right">0.62</td>
+<td align="right">2.24</td>
+<td align="right">0.06</td>
+<td align="right">-0.02</td>
+<td align="right">0.9</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>kendall</strong></td>
+<td align="right">0.54</td>
+<td align="right">2.16</td>
+<td align="right">0.03</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>spearman</strong></td>
+<td align="right">0.69</td>
+<td align="right">51.66</td>
+<td align="right">0.03</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<div id="model-fitting" class="section level2">
+<h2>Model fitting</h2>
+<div id="rms-optimization" class="section level3">
+<h3>RMS Optimization</h3>
+<pre class="r"><code>fit_sann &lt;- function(data_to_fit) {
+  init_values &lt;- c(data_to_fit[[1, 1]], data_to_fit[[1, 2]])
+  t_seq &lt;- 1:(nrow(data_to_fit))
+  rms_fit &lt;- function(params) {
+    ode_result &lt;- richardson_ode_solver(init_values, t_seq, params)
+    sse &lt;- mean((as.matrix(data_to_fit) - as.matrix(ode_result[2:3]))^2)
+  }
+  opt_result &lt;- optim(
+    par = rlnorm(6, 0.5, 0.5),
+    fn = rms_fit,
+    method = &quot;SANN&quot;
+  )
+  return(opt_result)
+}</code></pre>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<pre class="r"><code>data_to_fit &lt;- example1_df %&gt;% select(nato, warsaw_pact)
+fit &lt;- fit_sann(data_to_fit)
+init_points &lt;- c(data_to_fit[[1, 1]], data_to_fit[[1, 2]])
+t_seq &lt;- seq(0, nrow(data_to_fit) + 2, 0.1)
+ode_pp &lt;- richardson_ode_solver(
+  init_points, t_seq,
+  fit$par, colnames(example1_df)
+)</code></pre>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<p><img src="/post/2019-09-07-arms-race_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">side</th>
+<th align="right">reaction</th>
+<th align="right">disarment</th>
+<th align="right">free</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><strong>NATO</strong></td>
+<td align="right">0.66</td>
+<td align="right">0.61</td>
+<td align="right">2.24</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>Warsaw pact</strong></td>
+<td align="right">2.72</td>
+<td align="right">2.95</td>
+<td align="right">1.86</td>
+</tr>
+</tbody>
+</table>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+<pre class="r"><code>phasePlot(richardson_ode, fit$par, 10)</code></pre>
+<p><img src="/post/2019-09-07-arms-race_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni</p>
+</div>
+</div>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 3.6.1 (2019-07-05)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## Running under: Linux Mint 19.2
+## 
+## Matrix products: default
+## BLAS:   /usr/lib/x86_64-linux-gnu/openblas/libblas.so.3
+## LAPACK: /usr/lib/x86_64-linux-gnu/libopenblasp-r0.2.20.so
+## 
+## locale:
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=pl_PL.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=pl_PL.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=pl_PL.UTF-8 LC_IDENTIFICATION=C       
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] forcats_0.4.0   stringr_1.4.0   dplyr_0.8.3     purrr_0.3.2    
+## [5] readr_1.3.1     tidyr_0.8.3     tibble_2.1.3    ggplot2_3.2.1  
+## [9] tidyverse_1.2.1
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_1.0.2       highr_0.8        cellranger_1.1.0 pillar_1.4.2    
+##  [5] compiler_3.6.1   phaseR_2.0       tools_3.6.1      zeallot_0.1.0   
+##  [9] digest_0.6.20    lubridate_1.7.4  jsonlite_1.6     evaluate_0.14   
+## [13] nlme_3.1-141     gtable_0.3.0     lattice_0.20-38  pkgconfig_2.0.2 
+## [17] rlang_0.4.0      cli_1.1.0        rstudioapi_0.10  yaml_2.2.0      
+## [21] haven_2.1.1      blogdown_0.15    xfun_0.9         withr_2.1.2     
+## [25] xml2_1.2.2       httr_1.4.1       knitr_1.24       vctrs_0.2.0     
+## [29] hms_0.5.1        generics_0.0.2   grid_3.6.1       tidyselect_0.2.5
+## [33] deSolve_1.24     glue_1.3.1       R6_2.4.0         readxl_1.3.1    
+## [37] rmarkdown_1.15   bookdown_0.13    modelr_0.1.5     magrittr_1.5    
+## [41] backports_1.1.4  scales_1.0.0     htmltools_0.3.6  rvest_0.3.4     
+## [45] assertthat_0.2.1 colorspace_1.4-1 stringi_1.4.3    lazyeval_0.2.2  
+## [49] munsell_0.5.0    broom_0.5.2      crayon_1.3.4</code></pre>
+</div>

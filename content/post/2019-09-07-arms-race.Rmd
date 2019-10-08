@@ -1,0 +1,264 @@
+---
+title: "Modeling Arms Race with ODE system"
+output:
+  blogdown::html_page:
+    toc: true
+date: 2019-09-07
+categories: ["R"]
+tags: ["ODE", "plot"]
+---
+
+```{r, echo = FALSE}
+set.seed(291)
+knitr::opts_chunk$set(
+  fig.align = "center",
+  echo = TRUE
+)
+```
+
+
+# Introduction
+
+<!-- 
+- motivation
+- model background
+-->
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ut tempus turpis. Suspendisse ultricies enim et imperdiet suscipit. Sed eget enim ipsum. Fusce efficitur iaculis ullamcorper. Ut purus purus, fringilla vel vehicula sed, fringilla finibus nibh. Sed aliquet ipsum sapien, quis vulputate neque venenatis vitae. 
+Donec vitae elementum nisi. Nulla nec tristique velit. Integer efficitur tristique dolor, a suscipit eros bibendum at. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed nibh arcu, molestie vulputate elit eu, scelerisque venenatis orci. Fusce nunc mauris, vestibulum eu nulla id, vestibulum venenatis arcu. Cras eget scelerisque ipsum.
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+<aside>
+```{r, echo = FALSE}
+knitr::include_graphics("images/Lewis_Fry_Richardson.png")
+```
+</aside>
+
+
+## Model formulation
+
+$$ 
+x_{t+1} = x_t + change
+$$
+
+
+$$ 
+change = r_xy_t - d_xx_t + a_x
+$$
+
+$r_{x}$ - *reaction* coefficent, indicating amount of arms increase due to current opponent resources. 
+
+$d_{x}$ - *disarment* coefficent, expressing tendency to reducing proportion of own armaments. 
+
+$a_{x}$ - *free* coefficent, responsible for constant attribution resulting from causes unrelated to own/opponent arms stock. 
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+$$ 
+\frac{dx}{dt} = r_xy - d_xx + a_x \\
+$$
+
+
+$$
+\frac{dy}{dt} = r_yx - d_yy + a_y
+$$
+Our final system:
+
+$$ 
+\begin{cases}
+\frac{dx}{dt} = r_xy - d_xx + a_x \\
+\frac{dy}{dt} = r_yx - d_yy + a_y
+\end{cases}
+$$
+
+```{r}
+richardson_ode <- function(t, y, params) {
+  dy <- numeric(2)
+  dy[1] <- params[1] * y[2] - params[2] * y[1] + params[3]
+  dy[2] <- params[4] * y[1] - params[5] * y[2] + params[6]
+  return(list(dy))
+}
+```
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+
+## Possible scenarios
+
+```{r}
+richardson_ode_solver <- function(init, t_seq, params,
+                                  labels = c("t", "x", "y")) {
+  ode_result <- deSolve::ode(init, t_seq, richardson_ode, params) %>%
+    as_tibble() %>%
+    set_names(labels) %>%
+    return()
+}
+```
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+```{r}
+phasePlot <- function(ode, parameters, lims) {
+  par(mar = c(3, 3, 1, 1))
+  flow <- phaseR::flowField(ode,
+    xlim = c(0, lims), ylim = c(0, lims),
+    parameters = parameters, points = 10, add = FALSE
+  )
+  nullclines <- phaseR::nullclines(ode,
+    xlim = c(0, lims), ylim = c(0, lims),
+    parameters = parameters,
+    col = c("blue", "red"), points = 50
+  )
+}
+```
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+```{r}
+phasePlot(richardson_ode, c(2, 2, 1, 1, -2, -2), 1.5)
+```
+ 
+ urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+ 
+```{r, preview=TRUE}
+phasePlot(richardson_ode, c(2, 5, 2, 5, 5, 5), 5)
+```
+ 
+ urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+
+# Example: Warsaw Pact and NATO
+ 
+```{r}
+library(tidyverse)
+nato_expenses <- c(
+  206.1, 209.6, 205.6, 208.6, 206.1,
+  202.8, 209.9, 212.7, 218.8, 229.8
+)
+warsaw_pact_expenses <- c(
+  166.6, 173.9, 180.9, 188.5, 195.3,
+  203.8, 206.9, 210.1, 212.6, 218.9
+)
+example1_df <- tibble(
+  year = 1971:1980,
+  nato = nato_expenses,
+  warsaw_pact = warsaw_pact_expenses
+)
+``` 
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+```{r, echo=FALSE}
+example1_df %>%
+  gather(side, expenses, -year) %>%
+  ggplot(aes(x = year, y = expenses, colour = side)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  scale_y_continuous(breaks = scales::pretty_breaks()) +
+  scale_x_continuous(breaks = scales::pretty_breaks()) +
+  theme_bw() +
+  theme(legend.position = "top", plot.title = element_text(hjust = 0.5)) +
+  ggtitle("NATO and Warsaw Pact military expenses [1971-1980]")
+```
+
+Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed nibh arcu, molestie vulputate elit eu, scelerisque venenatis orci. Fusce nunc mauris, vestibulum eu nulla id, vestibulum venenatis arcu. Cras eget scelerisque ipsum.
+
+```{r,echo=FALSE}
+c("pearson", "kendall", "spearman") %>%
+  map(
+    ~ cor.test(
+      example1_df$nato,
+      example1_df$warsaw_pact,
+      method = .x
+    ) %>%
+      broom::tidy() %>%
+      mutate(method = str_c("**", .x, "**"))
+  ) %>%
+  reduce(bind_rows) %>%
+  select(method, everything()) %>%
+  mutate_if(is.numeric, round, 2) %>%
+  select(-parameter, -alternative) %>%
+  knitr::kable()
+```
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+## Model fitting
+
+### RMS Optimization
+
+```{r}
+fit_sann <- function(data_to_fit) {
+  init_values <- c(data_to_fit[[1, 1]], data_to_fit[[1, 2]])
+  t_seq <- 1:(nrow(data_to_fit))
+  rms_fit <- function(params) {
+    ode_result <- richardson_ode_solver(init_values, t_seq, params)
+    sse <- mean((as.matrix(data_to_fit) - as.matrix(ode_result[2:3]))^2)
+  }
+  opt_result <- optim(
+    par = rlnorm(6, 0.5, 0.5),
+    fn = rms_fit,
+    method = "SANN"
+  )
+  return(opt_result)
+}
+```
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+```{r}
+data_to_fit <- example1_df %>% select(nato, warsaw_pact)
+fit <- fit_sann(data_to_fit)
+init_points <- c(data_to_fit[[1, 1]], data_to_fit[[1, 2]])
+t_seq <- seq(0, nrow(data_to_fit) + 2, 0.1)
+ode_pp <- richardson_ode_solver(
+  init_points, t_seq,
+  fit$par, colnames(example1_df)
+)
+```
+
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+```{r, echo = FALSE}
+ode_pp %>%
+  mutate(year = year + min(example1_df$year)) %>%
+  gather(side, expenses, -year) %>%
+  ggplot(aes(x = year, y = expenses, colour = side)) +
+  geom_point(
+    data = example1_df %>% gather(side, expenses, -year),
+    aes(x = year, y = expenses, colour = side)
+  ) +
+  geom_line() +
+  scale_y_continuous(breaks = scales::pretty_breaks()) +
+  scale_x_continuous(breaks = scales::pretty_breaks()) +
+  theme_bw() +
+  theme(legend.position = "top", plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r, echo = FALSE}
+tibble(side = c("**NATO**", "**Warsaw pact**"),
+       reaction = c(fit$par[1], fit$par[4]),
+       disarment = c(fit$par[2], fit$par[5]),
+       free = c(fit$par[3], fit$par[6]))  %>%
+  mutate_if(is.numeric, round, 2) %>%
+  knitr::kable()
+```
+
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+
+```{r}
+phasePlot(richardson_ode, fit$par, 10)
+```
+ 
+ urient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed niurient montes, nascetur ridiculus mus. Nulla fringilla, magna suscipit convallis placerat, tellus lacus molestie urna, sed dapibus lorem dolor quis ligula. Nullam vehicula luctus fermentum. Sed ni
+ 
+# Summary
+ 
+ 
+```{r}
+sessionInfo()
+```
